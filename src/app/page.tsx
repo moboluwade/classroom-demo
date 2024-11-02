@@ -1,101 +1,395 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Bold,
+  ChevronDown,
+  ChevronUp,
+  File,
+  FilePlus,
+  FolderPlus,
+  List,
+  ListOrdered,
+  PlayCircle,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
+// import { cn } from '@/lib/utils'
+import { createCourse } from "@/app/actions/actions";
+import { v4 as uuidv4 } from "uuid";
+
+type Section = {
+  id: string;
+  title: string;
+  lectures: Lecture[];
+};
+
+type Lecture = {
+  id: string;
+  title: string;
+  description: string;
+  type: "video" | "slide" | "article";
+};
+
+export default function Component() {
+  const [sections, setSections] = useState<Section[]>([
+    {
+      id: "1",
+      title: "Introduction",
+      lectures: [
+        {
+          id: "1",
+          title: "Introduction Video",
+          description: "",
+          type: "video",
+        },
+      ],
+    },
+  ]);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["1"]);
+  const [expandedLectures, setExpandedLectures] = useState<string[]>([]);
+
+  const addSection = () => {
+    const newSection: Section = {
+      id: uuidv4(),
+      title: "New Section",
+      lectures: [],
+    };
+    setSections([...sections, newSection]);
+  };
+
+  const addLecture = (sectionId: string) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            lectures: [
+              ...section.lectures,
+              {
+                id: uuidv4(),
+                title: "New Lecture",
+                description: "",
+                type: "video",
+              },
+            ],
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const updateLectureType = (
+    sectionId: string,
+    lectureId: string,
+    type: Lecture["type"]
+  ) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            lectures: section.lectures.map((lecture) => {
+              if (lecture.id === lectureId) {
+                return { ...lecture, type };
+              }
+              return lecture;
+            }),
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((expanded) =>
+      expanded.includes(sectionId)
+        ? expanded.filter((id) => id !== sectionId)
+        : [...expanded, sectionId]
+    );
+  };
+
+  const toggleLecture = (lectureId: string) => {
+    setExpandedLectures((expanded) =>
+      expanded.includes(lectureId)
+        ? expanded.filter((id) => id !== lectureId)
+        : [...expanded, lectureId]
+    );
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="dark w-screen max-w-4xl mx-auto p-4 space-y-4 bg-background text-foreground">
+      <span className="mx-auto text-3xl font-semibold">Classes</span>
+      <form action={() => createCourse(sections)}>
+        <ScrollArea className="h-fit rounded-md border border-border p-4">
+          {sections.map((section, sectionIndex) => (
+            <Card
+              key={section.id}
+              className="mb-4 bg-card text-card-foreground"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleSection(section.id)}
+                    type="button"
+                  >
+                    {expandedSections.includes(section.id) ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <div className="flex-1">
+                    <Input
+                      value={`Section ${sectionIndex + 1}: ${section.title}`}
+                      onChange={(e) =>
+                        setSections(
+                          sections.map((s) =>
+                            s.id === section.id
+                              ? {
+                                  ...s,
+                                  title: e.target.value.replace(
+                                    `Section ${sectionIndex + 1}: `,
+                                    ""
+                                  ),
+                                }
+                              : s
+                          )
+                        )
+                      }
+                      className="font-semibold bg-input text-input-foreground"
+                    />
+                  </div>
+                </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+                <Collapsible open={expandedSections.includes(section.id)}>
+                  <CollapsibleContent className="space-y-4">
+                    {section.lectures.map((lecture, lectureIndex) => (
+                      <div key={lecture.id} className="pl-6 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleLecture(lecture.id)}
+                            type="button"
+                          >
+                            {expandedLectures.includes(lecture.id) ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <div className="flex-1">
+                            <Input
+                              value={`Lecture ${lectureIndex + 1}: ${
+                                lecture.title
+                              }`}
+                              onChange={(e) =>
+                                setSections(
+                                  sections.map((s) =>
+                                    s.id === section.id
+                                      ? {
+                                          ...s,
+                                          lectures: s.lectures.map((l) =>
+                                            l.id === lecture.id
+                                              ? {
+                                                  ...l,
+                                                  title: e.target.value.replace(
+                                                    `Lecture ${
+                                                      lectureIndex + 1
+                                                    }: `,
+                                                    ""
+                                                  ),
+                                                }
+                                              : l
+                                          ),
+                                        }
+                                      : s
+                                  )
+                                )
+                              }
+                              className="bg-input text-input-foreground"
+                            />
+                          </div>
+                        </div>
+
+                        <Collapsible
+                          open={expandedLectures.includes(lecture.id)}
+                        >
+                          <CollapsibleContent className="space-y-4">
+                            <div className="pl-6">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                  >
+                                    <Bold className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                  >
+                                    <List className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    type="button"
+                                  >
+                                    <ListOrdered className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Textarea
+                                  placeholder="Add a description. Include what students will be able to do after completing the lecture."
+                                  value={lecture.description}
+                                  onChange={(e) =>
+                                    setSections(
+                                      sections.map((s) =>
+                                        s.id === section.id
+                                          ? {
+                                              ...s,
+                                              lectures: s.lectures.map((l) =>
+                                                l.id === lecture.id
+                                                  ? {
+                                                      ...l,
+                                                      description:
+                                                        e.target.value,
+                                                    }
+                                                  : l
+                                              ),
+                                            }
+                                          : s
+                                      )
+                                    )
+                                  }
+                                  className="min-h-[100px] bg-input text-input-foreground"
+                                />
+                              </div>
+
+                              <Separator className="my-4" />
+
+                              <div className="space-y-4">
+                                <h4 className="text-sm font-medium">
+                                  Select content type
+                                </h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                  <Button
+                                    variant={
+                                      lecture.type === "video"
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className="h-24 flex flex-col items-center justify-center gap-2"
+                                    onClick={() =>
+                                      updateLectureType(
+                                        section.id,
+                                        lecture.id,
+                                        "video"
+                                      )
+                                    }
+                                    type="button"
+                                  >
+                                    <PlayCircle className="h-8 w-8" />
+                                    <span>Video</span>
+                                  </Button>
+                                  <Button
+                                    variant={
+                                      lecture.type === "slide"
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className="h-24 flex flex-col items-center justify-center gap-2"
+                                    onClick={() =>
+                                      updateLectureType(
+                                        section.id,
+                                        lecture.id,
+                                        "slide"
+                                      )
+                                    }
+                                    type="button"
+                                  >
+                                    <SlidersHorizontal className="h-8 w-8" />
+                                    <span>Video & Slide Mashup</span>
+                                  </Button>
+                                  <Button
+                                    variant={
+                                      lecture.type === "article"
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className="h-24 flex flex-col items-center justify-center gap-2"
+                                    onClick={() =>
+                                      updateLectureType(
+                                        section.id,
+                                        lecture.id,
+                                        "article"
+                                      )
+                                    }
+                                    type="button"
+                                  >
+                                    <File className="h-8 w-8" />
+                                    <span>Article</span>
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </div>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-6"
+                      onClick={() => addLecture(section.id)}
+                      type="button"
+                    >
+                      <FilePlus className="h-4 w-4 mr-2" />
+                      Add lecture
+                    </Button>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
+            </Card>
+          ))}
+
+          <Button
+            variant="outline"
+            onClick={addSection}
+            className="w-full"
+            type="button"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <FolderPlus className="h-4 w-4 mr-2" />
+            Add section
+          </Button>
+        </ScrollArea>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" type="button">
+            Cancel
+          </Button>
+          <Button type="submit">Save Course</Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </form>
     </div>
   );
 }
