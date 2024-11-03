@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -23,10 +22,9 @@ import {
   ListOrdered,
   PlayCircle,
   SlidersHorizontal,
-  X,
 } from "lucide-react";
 // import { cn } from '@/lib/utils'
-import { createCourse } from "@/app/actions/actions";
+// import { createCourse } from "@/app/actions/actions";
 import { v4 as uuidv4 } from "uuid";
 
 type Section = {
@@ -133,7 +131,7 @@ export default function Component() {
   return (
     <div className="dark w-screen max-w-4xl mx-auto p-4 space-y-4 bg-background text-foreground">
       <span className="mx-auto text-3xl font-semibold">Classes</span>
-      <form action={() => createCourse(sections)}>
+      <form>
         <ScrollArea className="h-fit rounded-md border border-border p-4">
           {sections.map((section, sectionIndex) => (
             <Card
